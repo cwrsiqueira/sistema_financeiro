@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilo para esconder o modal */
+.hidden {
+    display: none;
+}
+
+/* Estilos para animação de fade */
+.fade {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+.fade-in {
+    opacity: 1;
+}
