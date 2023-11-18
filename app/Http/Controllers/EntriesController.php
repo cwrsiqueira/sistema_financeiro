@@ -6,6 +6,7 @@ use App\Models\Entries;
 use App\Http\Controllers\Controller;
 use Dotenv\Parser\Entry;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class EntriesController extends Controller
 {
@@ -14,12 +15,7 @@ class EntriesController extends Controller
      */
     public function index()
     {
-        $entries = Entries::all();
-        $current_balance = Entries::sum('transaction_value');
-        return view('entries.list', [
-            'entries' => $entries,
-            'current_balance' => $current_balance,
-        ]);
+        //
     }
 
     /**
@@ -35,7 +31,22 @@ class EntriesController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $data = $request->except('_token');
+        Validator::make($data, [
+            "transaction_description" => "required|max:255",
+            "transaction_date" => "required",
+            "transaction_value" => "required",
+            "transaction_type" => "required",
+        ])->validate();
+
+        $data['account_id'] = intval($data['account_id']);
+        $data['transaction_value'] = str_replace(',', '.', str_replace('.', '', $data['transaction_value']));
+        $data['transaction_date'] = $data['transaction_date'] . " " . date('H:i:s');
+
+        // dd($data);
+        $newEntry = Entries::create($data);
+
+        return redirect()->route('entries.create', ['account' => $data['account_id']])->with('success', 'Lançamento adicionado com sucesso!');
     }
 
     /**
@@ -49,24 +60,45 @@ class EntriesController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Entries $entries)
+    public function edit(Request $request, $id)
     {
-        //
+        $entry = Entries::find($id);
+        $account_id = $request->account_id;
+        return view('entries.edit', [
+            'entry' => $entry,
+            'account_id' => $account_id,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Entries $entries)
+    public function update(Request $request, $id)
     {
-        //
+        $data = $request->except('_token');
+        Validator::make($data, [
+            "transaction_description" => "required|max:255",
+            "transaction_date" => "required",
+            "transaction_value" => "required",
+            "transaction_type" => "required",
+        ])->validate();
+
+        $data['account_id'] = intval($data['account_id']);
+        $data['transaction_value'] = str_replace(',', '.', str_replace('.', '', $data['transaction_value']));
+        $data['transaction_date'] = $data['transaction_date'] . " " . date('H:i:s');
+
+        // dd($data);
+        $newEntry = Entries::find($id)->update($data);
+
+        return redirect()->route('accounts.show', $data['account_id'])->with('success', 'Lançamento editado com sucesso!');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Entries $entries)
+    public function destroy(Request $request, $id)
     {
-        //
+        Entries::find($id)->delete();
+        return redirect()->route('accounts.show', $request->account_id)->with('success', 'Lançamento excluído com sucesso!');
     }
 }

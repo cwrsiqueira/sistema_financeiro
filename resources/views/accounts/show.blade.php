@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Entries') }}
+            {{ __('Account') }}: {{ $account->name }}
         </h2>
     </x-slot>
 
@@ -31,11 +31,11 @@
 
                 <div class="w-full">
                     <div class="flex justify-between items-center">
-                        <a href="{{ route('entries.create') }}"
+                        <a href="{{ route('entries.create', ['account' => $account->id]) }}"
                             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                             {{ __('Add Entry') }}
                         </a>
-                        <p>{{ __('Current Balance') }}: R$ {{ number_format($current_balance, 2, ',', '.') }}</p>
+                        <p>{{ __('Current Balance') }}: R$ {{ number_format($balance, 2, ',', '.') }}</p>
                     </div>
                     <table class="min-w-full table-auto mt-3">
                         <thead class="bg-gray-800 text-white">
@@ -61,25 +61,41 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ date('01/m/Y') }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">SALDO ANTERIOR</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right"> - </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right"> - </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    R$ {{ number_format($account->opening_balance, 2, ',', '.') }}</td>
+                            </tr>
                             @foreach ($entries as $item)
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        {{ $item->transaction_date }}
+                                        {{ date('d/m/Y', strtotime($item->transaction_date)) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        {{ $item->description }}
+                                        {{ $item->transaction_description }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right">
-                                        R$ {{ number_format($item->inflow, 2, ',', '.') }}
+                                        @if ($item->transaction_type === 'inflow')
+                                            R$ {{ number_format($item->transaction_value, 2, ',', '.') }}
+                                        @else
+                                            -
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right">
-                                        R$ {{ number_format($item->outflow, 2, ',', '.') }}
+                                        @if ($item->transaction_type === 'outflow')
+                                            R$ {{ number_format($item->transaction_value, 2, ',', '.') }}
+                                        @else
+                                            -
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right">
-                                        R$ {{ number_format($item->balance, 2, ',', '.') }}
+                                        R$ {{ number_format($item->current_balance, 2, ',', '.') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center flex justify-around">
-                                        <a href="{{ route('entries.edit', [$item->id]) }}"
+                                        <a href="{{ route('entries.edit', [$item->id, 'account_id' => $account->id]) }}"
                                             title="{{ __('Edit Transaction') }}">
                                             <i
                                                 class="fa-solid fa-pen-to-square cursor-pointer hover:text-green-400 hover:scale-110 transition ease-in-out delay-50"></i>
@@ -99,6 +115,7 @@
                             @endforeach
                         </tbody>
                     </table>
+                    {{ $entries->links() }}
                 </div>
             </div>
         </div>

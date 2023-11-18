@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Account;
+use App\Models\Entries;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Validator;
@@ -16,9 +17,23 @@ class AccountController extends Controller
     public function index(Request $request)
     {
         $accounts = Account::all();
-        $current_balance = Account::sum('opening_balance');
+        $current_balance = 0;
+        foreach ($accounts as $key => $item) {
+            $inflows = Entries::where('account_id', $item->id)
+                ->where('transaction_type', 'inflow')
+                ->sum('transaction_value');
 
-        return view('accounts.list', [
+            $outflows = Entries::where('account_id', $item->id)
+                ->where('transaction_type', 'outflow')
+                ->sum('transaction_value');
+
+            $accounts[$key]['inflows'] = $inflows;
+            $accounts[$key]['outflows'] = $outflows;
+            $accounts[$key]['balance'] = $item->opening_balance + $inflows - $outflows;
+            $current_balance += $accounts[$key]['balance'];
+        }
+
+        return view('accounts.index', [
             'user' => $request->user(),
             'accounts' => $accounts,
             'current_balance' => $current_balance,
@@ -65,7 +80,58 @@ class AccountController extends Controller
      */
     public function show(string $id, Request $request)
     {
-        //
+        $account = Account::find($id);
+
+        $entries = Entries::where('account_id', $id)
+            ->whereBetween('transaction_date', [$request->ini_date ?? date('Y-m-01 00:00:00'), $request->fin_date ?? date('Y-m-t 23:59:59')])
+            ->orderBy('transaction_date')
+            ->paginate(10);
+
+        $ob_inflows = Entries::where('account_id', $id)
+            ->where('transaction_type', 'inflow')
+            ->where('transaction_date', '<', $request->ini_date ?? date('Y-m-01 00:00:00'))
+            ->sum('transaction_value');
+
+        $ob_outflows = Entries::where('account_id', $id)
+            ->where('transaction_type', 'outflow')
+            ->where('transaction_date', '<', $request->ini_date ?? date('Y-m-01 00:00:00'))
+            ->sum('transaction_value');
+
+        $opening_balance = $account->opening_balance + $ob_inflows - $ob_outflows;
+
+        $inflows = Entries::where('account_id', $id)
+            ->where('transaction_type', 'inflow')
+            ->sum('transaction_value');
+
+        $outflows = Entries::where('account_id', $id)
+            ->where('transaction_type', 'outflow')
+            ->sum('transaction_value');
+
+        $balance = $account->opening_balance + $inflows - $outflows;
+
+        foreach ($entries as $key => $item) {
+            $current_inflow = Entries::where('account_id', $id)
+                ->where('transaction_type', 'inflow')
+                ->where('transaction_date', '<=', $item->transaction_date)
+                ->sum('transaction_value');
+            $current_outflow = Entries::where('account_id', $id)
+                ->where('transaction_type', 'outflow')
+                ->where('transaction_date', '<=', $item->transaction_date)
+                ->sum('transaction_value');
+            $current_balance = $account->opening_balance + $current_inflow - $current_outflow;
+            $entries[$key]['current_balance'] = $current_balance;
+        }
+
+        // dd($entries);
+
+        return view('accounts.show', [
+            'account' => $account,
+            'entries' => $entries,
+            'opening_balance' => $opening_balance,
+            'inflows' => $inflows,
+            'outflows' => $outflows,
+            'balance' => $balance,
+        ]);
     }
 
     /**

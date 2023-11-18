@@ -1,9 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            <a class="text-blue-800 hover:text-blue-600" href="{{ route('accounts.index') }}">{{ __('Accounts') }}</a>
-            <i class="fa-solid fa-arrow-left text-xs"></i>
-            {{ __('Edit') }}
+            {{ __('Edit Account') }}
         </h2>
     </x-slot>
 
@@ -28,7 +26,7 @@
                             class="block text-gray-700 text-sm font-bold mb-2">{{ __('Opening Balance') }}:</label>
                         <input type="text" id="opening_balance" name="opening_balance"
                             value="{{ number_format($account->opening_balance, 2, ',', '.') }}"
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline value_mask"
                             value="0,00">
                     </div>
                     <div class="flex items-center justify-between">

@@ -38,7 +38,8 @@ if (accountForm !== null) {
         });
     });
 }
-var opening_balance = document.getElementById('opening_balance');
+
+var opening_balance = document.querySelector('.value_mask');
 if (opening_balance !== null) {
     opening_balance.addEventListener('input', function (e) {
         var value = e.target.value.replace(/\D/g, ''); // Remove caracteres não numéricos
