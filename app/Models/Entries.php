@@ -11,6 +11,7 @@ class Entries extends Model
 
     protected $fillable = [
         'account_id',
+        'user_id',
         'transaction_type',
         'transaction_date',
         'transaction_description',

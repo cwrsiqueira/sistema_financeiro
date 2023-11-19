@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Account;
 use App\Models\Entries;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class AccountController extends Controller
@@ -16,14 +16,16 @@ class AccountController extends Controller
      */
     public function index(Request $request)
     {
-        $accounts = Account::all();
+        $accounts = Account::where('user_id', Auth::user()->id)->get();
         $current_balance = 0;
         foreach ($accounts as $key => $item) {
             $inflows = Entries::where('account_id', $item->id)
+                ->where('user_id', Auth::user()->id)
                 ->where('transaction_type', 'inflow')
                 ->sum('transaction_value');
 
             $outflows = Entries::where('account_id', $item->id)
+                ->where('user_id', Auth::user()->id)
                 ->where('transaction_type', 'outflow')
                 ->sum('transaction_value');
 
@@ -65,6 +67,7 @@ class AccountController extends Controller
         $opening_balance = str_replace(',', '.', str_replace('.', '', $opening_balance));
 
         $newAccount = new Account();
+        $newAccount->user_id = Auth::user()->id;
         $newAccount->name = $name;
         $newAccount->opening_balance = $opening_balance;
         if (!$newAccount->save()) {
@@ -87,16 +90,19 @@ class AccountController extends Controller
         $account = Account::find($id);
 
         $entries = Entries::where('account_id', $id)
+            ->where('user_id', Auth::user()->id)
             ->whereBetween('transaction_date', [$ini_date, $fin_date])
             ->orderBy('transaction_date')
             ->get();
 
         $ob_inflows = Entries::where('account_id', $id)
+            ->where('user_id', Auth::user()->id)
             ->where('transaction_type', 'inflow')
             ->where('transaction_date', '<', $ini_date)
             ->sum('transaction_value');
 
         $ob_outflows = Entries::where('account_id', $id)
+            ->where('user_id', Auth::user()->id)
             ->where('transaction_type', 'outflow')
             ->where('transaction_date', '<', $ini_date)
             ->sum('transaction_value');
@@ -104,10 +110,12 @@ class AccountController extends Controller
         $opening_balance = $account->opening_balance + $ob_inflows - $ob_outflows;
 
         $inflows = Entries::where('account_id', $id)
+            ->where('user_id', Auth::user()->id)
             ->where('transaction_type', 'inflow')
             ->sum('transaction_value');
 
         $outflows = Entries::where('account_id', $id)
+            ->where('user_id', Auth::user()->id)
             ->where('transaction_type', 'outflow')
             ->sum('transaction_value');
 
@@ -115,10 +123,12 @@ class AccountController extends Controller
 
         foreach ($entries as $key => $item) {
             $current_inflow = Entries::where('account_id', $id)
+                ->where('user_id', Auth::user()->id)
                 ->where('transaction_type', 'inflow')
                 ->where('transaction_date', '<=', $item->transaction_date)
                 ->sum('transaction_value');
             $current_outflow = Entries::where('account_id', $id)
+                ->where('user_id', Auth::user()->id)
                 ->where('transaction_type', 'outflow')
                 ->where('transaction_date', '<=', $item->transaction_date)
                 ->sum('transaction_value');

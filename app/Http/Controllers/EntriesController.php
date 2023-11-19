@@ -6,6 +6,7 @@ use App\Models\Entries;
 use App\Http\Controllers\Controller;
 use Dotenv\Parser\Entry;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class EntriesController extends Controller
@@ -42,6 +43,7 @@ class EntriesController extends Controller
         $data['account_id'] = intval($data['account_id']);
         $data['transaction_value'] = str_replace(',', '.', str_replace('.', '', $data['transaction_value']));
         $data['transaction_date'] = $data['transaction_date'] . " " . date('H:i:s');
+        $data['user_id'] = Auth::user()->id;
 
         // dd($data);
         $newEntry = Entries::create($data);

@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('accounts', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('name');
             $table->decimal('opening_balance', $precision = 12, $scale = 2)->nullable();
             $table->timestamp('created_at')->useCurrent();

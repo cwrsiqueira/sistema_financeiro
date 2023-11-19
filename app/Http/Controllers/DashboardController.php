@@ -8,6 +8,7 @@ use App\Models\Entries;
 use Carbon\Carbon;
 use DateTime;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -31,17 +32,19 @@ class DashboardController extends Controller
         }
         $selected_days = implode(',', $selected_days);
 
-        $accounts = Account::all();
-        $opening_balance = Account::sum('opening_balance');
+        $accounts = Account::where('user_id', Auth::user()->id)->get();
+        $opening_balance = Account::where('user_id', Auth::user()->id)->sum('opening_balance');
 
         $current_day_inflows = [];
         $current_day_outflows = [];
         foreach ($selected_dates as $date) {
             $current_inflows = Entries::where('transaction_type', 'inflow')
+                ->where('user_id', Auth::user()->id)
                 ->where('transaction_date', '<=', $date)
                 ->sum('transaction_value');
 
             $current_outflows = Entries::where('transaction_type', 'outflow')
+                ->where('user_id', Auth::user()->id)
                 ->where('transaction_date', '<=', $date)
                 ->sum('transaction_value');
 
@@ -56,14 +59,17 @@ class DashboardController extends Controller
         $current_account_balance = [];
         foreach ($accounts as $key => $account) {
             foreach ($selected_dates as $date) {
-                $opening_balance = Account::where('id', $account->id)->sum('opening_balance');
+                $opening_balance = Account::where('id', $account->id)
+                    ->where('user_id', Auth::user()->id)->sum('opening_balance');
 
                 $current_inflows = Entries::where('account_id', $account->id)
+                    ->where('user_id', Auth::user()->id)
                     ->where('transaction_type', 'inflow')
                     ->where('transaction_date', '<=', $date)
                     ->sum('transaction_value');
 
                 $current_outflows = Entries::where('account_id', $account->id)
+                    ->where('user_id', Auth::user()->id)
                     ->where('transaction_type', 'outflow')
                     ->where('transaction_date', '<=', $date)
                     ->sum('transaction_value');

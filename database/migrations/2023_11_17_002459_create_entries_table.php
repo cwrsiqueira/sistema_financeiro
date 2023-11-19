@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('entries', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('account_id')->constrained('accounts')->onDelete('cascade');
             $table->string('transaction_type')->comment('inflow, outflow');
             $table->dateTime('transaction_date')->useCurrent();
