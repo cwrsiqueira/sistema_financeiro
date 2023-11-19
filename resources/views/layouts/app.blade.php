@@ -39,6 +39,9 @@
             {{ $slot }}
         </main>
     </div>
+
+
+    @yield('javascript')
 </body>
 
 </html>

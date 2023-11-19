@@ -80,21 +80,25 @@ class AccountController extends Controller
      */
     public function show(string $id, Request $request)
     {
+        $data = $request->all();
+        $ini_date = $data['ini_date'] ?? date('Y-m-01 00:00:00');
+        $fin_date = $data['fin_date'] ?? date('Y-m-t 23:59:59');
+
         $account = Account::find($id);
 
         $entries = Entries::where('account_id', $id)
-            ->whereBetween('transaction_date', [$request->ini_date ?? date('Y-m-01 00:00:00'), $request->fin_date ?? date('Y-m-t 23:59:59')])
+            ->whereBetween('transaction_date', [$ini_date, $fin_date])
             ->orderBy('transaction_date')
-            ->paginate(10);
+            ->get();
 
         $ob_inflows = Entries::where('account_id', $id)
             ->where('transaction_type', 'inflow')
-            ->where('transaction_date', '<', $request->ini_date ?? date('Y-m-01 00:00:00'))
+            ->where('transaction_date', '<', $ini_date)
             ->sum('transaction_value');
 
         $ob_outflows = Entries::where('account_id', $id)
             ->where('transaction_type', 'outflow')
-            ->where('transaction_date', '<', $request->ini_date ?? date('Y-m-01 00:00:00'))
+            ->where('transaction_date', '<', $ini_date)
             ->sum('transaction_value');
 
         $opening_balance = $account->opening_balance + $ob_inflows - $ob_outflows;
@@ -131,6 +135,8 @@ class AccountController extends Controller
             'inflows' => $inflows,
             'outflows' => $outflows,
             'balance' => $balance,
+            'ini_date' => $ini_date,
+            'fin_date' => $fin_date,
         ]);
     }
 

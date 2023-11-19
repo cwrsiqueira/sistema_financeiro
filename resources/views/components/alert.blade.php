@@ -6,7 +6,7 @@
 @endphp
 
 @if ($messageType)
-    <div class="bg-{{ $messageColors[$messageType] }}-100 border-l-4 border-{{ $messageColors[$messageType] }}-500 text-{{ $messageColors[$messageType] }}-700 p-4 mb-3"
+    <div class="bg-{{ $messageColors[$messageType] }}-100 border-l-4 border-{{ $messageColors[$messageType] }}-500 text-{{ $messageColors[$messageType] }}-700 p-4 mb-3 mr-3 rounded"
         role="alert">
         <p>
             @if ($messageType == 'success')

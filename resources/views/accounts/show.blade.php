@@ -9,25 +9,35 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
 
-                @php
-                    $messageType = session('success') ? 'success' : (session('error') ? 'error' : null);
-                    $messageContent = session($messageType);
-                    $messageColors = ['success' => 'green', 'error' => 'red'];
-                    $messageIcons = ['success' => 'thumbs-up', 'error' => 'alert']; // Exemplo de ícones
-                @endphp
-
-                @if ($messageType)
-                    <div class="bg-{{ $messageColors[$messageType] }}-100 border-l-4 border-{{ $messageColors[$messageType] }}-500 text-{{ $messageColors[$messageType] }}-700 p-4 mb-3"
-                        role="alert">
-                        <p>
-                            @if ($messageType == 'success')
-                                <i class="fa-solid fa-thumbs-up"></i>
-                            @elseif ($messageType == 'error')
-                                <i class="fa-solid fa-thumbs-down"></i>
-                            @endif{{ $messageContent }}
-                        </p>
-                    </div>
-                @endif
+                <div class="flex flex-row py-2">
+                    <div class="basis-1/2"><x-alert></x-alert></div>
+                    <form method="GET" action="{{ route('accounts.show', $account->id) }}">
+                        <div class="basis-1/2">
+                            <label for="filter_period"
+                                class="form-label text-gray-700 font-semibold text-sm">{{ __('Filter by Period') }}</label>
+                            <div class="flex flex-row mt-1 items-center">
+                                <div class="flex-grow pr-2">
+                                    <input type="date" name="ini_date" id="ini_date"
+                                        class="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value="{{ explode(' ', $ini_date)[0] ?? date('Y-m-01') }}">
+                                </div>
+                                <div class="flex-grow pl-2">
+                                    <input type="date" name="fin_date" id="fin_date"
+                                        class="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value="{{ explode(' ', $fin_date)[0] ?? date('Y-m-t') }}">
+                                </div>
+                                <button type="submit"
+                                    class="flex items-center px-3 py-1 bg-blue-500 text-white text-sm font-bold rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ml-4">
+                                    <i class="fa-solid fa-magnifying-glass mr-1"></i> {{ __('Filter') }}
+                                </button>
+                                <a href="{{ route('accounts.show', $account->id) }}" type="button"
+                                    class="flex items-center px-3 py-1 bg-green-500 text-white text-sm font-bold rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ml-4">
+                                    <i class="fa-solid fa-rotate-left mr-1"></i> {{ __('Clear Filters') }}
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
 
                 <div class="w-full">
                     <div class="flex justify-between items-center">
@@ -62,15 +72,16 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ date('01/m/Y') }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {{ date('d/m/Y', strtotime(explode(' ', $ini_date)[0])) ?? date('01/m/Y') }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">SALDO ANTERIOR</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right"> - </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right"> - </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right">
-                                    R$ {{ number_format($account->opening_balance, 2, ',', '.') }}</td>
+                                    R$ {{ number_format($opening_balance, 2, ',', '.') }}</td>
                             </tr>
                             @foreach ($entries as $item)
-                                <tr>
+                                <tr class="hover:bg-slate-100">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         {{ date('d/m/Y', strtotime($item->transaction_date)) }}
                                     </td>
@@ -104,6 +115,7 @@
                                         <form action="{{ route('entries.destroy', [$item->id]) }}" method="post">
                                             @method('delete')
                                             @csrf
+                                            <input type="hidden" name="account_id" value="{{ $account->id }}">
                                             <button type="submit" title="{{ __('Delete Transaction') }}"
                                                 onclick="return confirm('{{ __('ATTENTION! Do you confirm the deletion of account and all its entries? This action has no return.') }}')">
                                                 <i
@@ -115,7 +127,7 @@
                             @endforeach
                         </tbody>
                     </table>
-                    {{ $entries->links() }}
+                    {{-- {{ $entries->links() }} --}}
                 </div>
             </div>
         </div>

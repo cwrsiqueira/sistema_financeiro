@@ -85,7 +85,7 @@ class EntriesController extends Controller
 
         $data['account_id'] = intval($data['account_id']);
         $data['transaction_value'] = str_replace(',', '.', str_replace('.', '', $data['transaction_value']));
-        $data['transaction_date'] = $data['transaction_date'] . " " . date('H:i:s');
+        $data['transaction_date'] = $data['transaction_date'];
 
         // dd($data);
         $newEntry = Entries::find($id)->update($data);
